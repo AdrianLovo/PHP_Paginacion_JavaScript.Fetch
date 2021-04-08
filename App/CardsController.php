@@ -23,15 +23,15 @@
             $query = $this->connect()->query('SELECT COUNT(*) AS total FROM bdpaginacion.post');
             $this->numeroResultados = $query->fetch(PDO::FETCH_OBJ)->total;
             $this->totalPaginas = round($this->numeroResultados / $this->resultadosPorPagina);  
-            
-            if(($this->numeroResultados % $this->resultadosPorPagina) > 0){
+
+            if(($this->numeroResultados % $this->resultadosPorPagina) > 0 &&
+                ((($this->numeroResultados / $this->resultadosPorPagina) - floor($this->numeroResultados/$this->resultadosPorPagina)) <= 0.5)
+            ){
                 $this->totalPaginas++;
             }
-            
-        
+                    
 
-            if(isset($_GET['pagina'])){
-                
+            if(isset($_GET['pagina'])){                
                 //Validar que pagina sea un numero
                 if(is_numeric($_GET['pagina'])){
 
@@ -51,15 +51,19 @@
             }
         }
 
-        function mostrarPeliculas(){
+        function listarCards(){
+            $arrayDeObjetos = array();
+
             if(!$this->error){
                 $query = $this->connect()->prepare('SELECT * FROM bdpaginacion.post LIMIT :pos, :n');
                 $query->execute(['pos' => $this->indice, 'n' => $this->resultadosPorPagina]);
 
-                foreach($query as $pelicula){
-                    include 'AppBasica/vista-pelicula.php';
+                foreach($query as $card){
+                    $tmp = ["Titulo" => $card['Titulo'], "URL" => $card['URL']];
+					array_push($arrayDeObjetos, $tmp);
                 }
             }
+            echo json_encode($arrayDeObjetos);
         }
 
         //SET Y GET
@@ -71,15 +75,29 @@
             $this->totalPaginas = $totalPaginas;
         }
 
+        public function getIndice(){
+            return $this->indice;
+        }
+
+        public function setIndice($indice){
+            $this->indice = $indice;
+        }
     }
 
 
-    $metodo = isset($_POST['metodo']) ? $_POST['metodo'] : null;
     $tabla = isset($_POST['tabla']) ? $_POST['tabla'] : null;
+    $metodo = isset($_POST['metodo']) ? $_POST['metodo'] : null;
+    $pagina = isset($_POST['pagina']) ? $_POST['pagina'] : null;
     $numeroPorPagina = isset($_POST['numeroPorPagina']) ? $_POST['numeroPorPagina'] : null;
 
 
     if($metodo === "Paginas"){
         $cards = new Card($numeroPorPagina);
         echo($cards->getTotalPaginas());
+    }
+
+    if($metodo === "Cards"){
+        $cards = new Card($numeroPorPagina);
+        $cards->setIndice( ($pagina-1) * $numeroPorPagina);
+        $cards->listarCards();        
     }

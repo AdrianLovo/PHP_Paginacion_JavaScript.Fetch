@@ -1,40 +1,41 @@
 import {mensaje} from './UtilSweetMessage.js';
-import {listarPaginasFetch} from './UtilFetch.js';
+import {listarPaginasFetch, listarCardsFetch} from './UtilFetch.js';
 
 //VARIABLES GLOBALES
 let TOTALPAGINAS;
 let RANGO = 5;
 
-
 (async function() {
     let pagina = 1;
     let numeroPorPagina = document.getElementById('numeroPorPagina');
     let divPaginas = document.getElementById('divPaginas');
-    
-    let lista = new Array();
+    let divCards = document.getElementById('divCards');  
+    let loading = document.getElementById('loading');
+
+    //MOSTRAR PAGINADO
     let totalPaginas = await listarPaginasFetch('../App/CardsController.php', 'Paginas', 'post', numeroPorPagina.value, pagina);    
     TOTALPAGINAS = totalPaginas;
-
     mostrarLista(divPaginas, totalPaginas, pagina);
 })();
 
-//Cambiar Paginado segun la cantidad de registros
+
+//CAMBIAR PAGINADO SEGUN LA CANTIDAD DE REGISTROS
 numeroPorPagina.addEventListener('change', async function(e){
     let pagina = 1;
     let divPaginas = document.getElementById('divPaginas');    
-    reiniciar(divPaginas);
+    reiniciarPaginado(divPaginas);
     
     let lista = new Array();
     let totalPaginas = await listarPaginasFetch('../App/CardsController.php', 'Paginas', 'post', numeroPorPagina.value, pagina); 
     TOTALPAGINAS = totalPaginas;   
     mostrarLista(divPaginas, totalPaginas, pagina);
+
+    let listaCards = new Array();
+    let totalCards = await listarCardsFetch('../App/CardsController.php', 'Cards', 'post', numeroPorPagina.value, pagina);   
 });
 
-
-
-
-function mostrarLista(divPaginas, totalPaginas, pagina){
-    console.log("PAGINA", pagina);
+//MOSTRAR PAGINADO
+async function mostrarLista(divPaginas, totalPaginas, pagina){
     let elementos = [];
     let ul = document.createElement('ul');
     let contenedor = document.createElement('div');
@@ -69,7 +70,7 @@ function mostrarLista(divPaginas, totalPaginas, pagina){
     aPrevius.addEventListener('click', anterior);
         
 
-    //Generando total de paginas
+    //GENERAR TODOS
     for(let i=1; i <= totalPaginas; i++){
         let li = document.createElement('li');
         let a = document.createElement('a');
@@ -77,20 +78,20 @@ function mostrarLista(divPaginas, totalPaginas, pagina){
         a.className='page-link';
         a.innerText = i;
         a.id = i;
-        a.addEventListener('click', ejemplo);
+        a.addEventListener('click', cambioPagina);
         li.appendChild(a);
         elementos.push(li);
     }     
     ul.appendChild(liPrevius);
 
-    //SIN RESUMIR ELEMENTOS
+    //SIN RESUMIR ELEMENTOS     12345
     if(totalPaginas < 6){
         for(let i=0; i < elementos.length; i++){
             ul.appendChild(elementos[i]);
         }    
     }
 
-    //RESUMIR ELEMENTOS
+    //RESUMIR ELEMENTOS         12345...N
     if(totalPaginas > 6){
         if((elementos.length - RANGO - pagina) > 0){    //Orden Normal
             let x = (0 + parseInt(pagina) -1);
@@ -113,35 +114,84 @@ function mostrarLista(divPaginas, totalPaginas, pagina){
         }
     }
 
-
     ul.appendChild(liNext);
     contenedor.append(ul);
     divPaginas.append(contenedor);
+
+    //MOSTRAR CARDS
+    reiniciarCards();
+    let listaCards = new Array();
+    let totalCards = await listarCardsFetch('../App/CardsController.php', 'Cards', 'post', numeroPorPagina.value, pagina);  
+    mostrarCards(totalCards, divCards); 
 }
 
-function ejemplo(){
-    reiniciar(divPaginas);
+//CAMBIO PAGINA SELECCIONADA CLICK
+function cambioPagina(){
+    reiniciarPaginado(divPaginas);
     mostrarLista(divPaginas, TOTALPAGINAS, this.id);
 }
 
+//CAMBIO PAGINA SIGUIENTE
 function siguiente(){
-    if(parseInt(this.id) > 0 && parseInt(this.id) < TOTALPAGINAS){
-        reiniciar(divPaginas);
-        mostrarLista(divPaginas, TOTALPAGINAS, this.id);        
+    if(parseInt(this.id) > 0 && parseInt(this.id) <= TOTALPAGINAS){
+        reiniciarPaginado(divPaginas);
+        mostrarLista(divPaginas, TOTALPAGINAS, this.id);                
     }
 }
 
+//CAMBIO PAGINA ANTERIOR
 function anterior(){
-    console.log("ANTERIOR")
     if(parseInt(this.id) > 0 && parseInt(this.id) < TOTALPAGINAS){
-        console.log("IF");
-        reiniciar(divPaginas);
+        reiniciarPaginado(divPaginas);
         mostrarLista(divPaginas, TOTALPAGINAS, this.id);        
     }
 }
 
-
-function reiniciar(divPaginas){
-    let contenedor = divPaginas.lastChild
+//BORRAR PAGINADO
+function reiniciarPaginado(){
+    let divPaginas = document.getElementById('divPaginas');
+    let contenedor = divPaginas.lastChild;
     contenedor.remove();
+}
+
+//MOSTRAR CARDS
+function mostrarCards(totalCards, divCards){
+    let elementos = [];
+    let contenedor = document.createElement('div');
+    
+    for(let i =0; i < totalCards.length; i++){
+        let div = document.createElement('div');
+        div.className="card";
+        div.style.display="inline-block";
+        div.style.marginRight="10px";
+        div.style.marginBottom="10px";
+
+        let divBody = document.createElement('div');
+        let h5 = document.createElement('h5');
+        let p = document.createElement('p');
+        h5.innerText = totalCards[i]["Titulo"];
+        p.innerText = "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Natus laborum omnis hic, delectus";
+        divBody.appendChild(h5);
+        divBody.appendChild(p);
+        
+        
+        let img = document.createElement('img');
+        img.style.width="280px";
+        img.alt = totalCards[i]["Titulo"];
+        img.src = totalCards[i]["URL"];
+        div.appendChild(img);
+        div.appendChild(divBody);
+        contenedor.appendChild(div);
+    }
+   
+    divCards.append(contenedor);
+    loading.style.display="none";
+}
+
+//BORRAR CARDS
+function reiniciarCards(){
+    let divCards = document.getElementById('divCards');
+    let contenedor = divCards.lastChild;
+    contenedor.remove();
+    loading.style.display="inline";
 }

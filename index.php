@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Paginación en PHP y JavaScript</title>
+    <link rel="shortcut icon" href="/public/favicon.ico"> 
 
     <!--Librerias Sweet-->
     <link rel="stylesheet" href="/Resources/sweet/sweetalert2.min.css">
@@ -19,25 +20,33 @@
 
     <div id="container" class="container mt-3">
 
-        <center>
-            <label for="numero">Resultados por página</label>
-        </center>
-        <select id="numeroPorPagina" name="numeroPorPagina" class="form-select" aria-label="Default select example">
-            <option value="1">1</option>
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="15">15</option>
-        </select>
-
-        <div id="divPaginas" class="mt-3">         
+        <div class="center">
+            <h1 for="numero">Resultados por página</h1>
         </div>
 
-        <div id="peliculas">
-            <?php
-                //$peliculas->mostrarPeliculas();
-            ?>
+        <div class="center">
+            <div class="col-6">
+                <select id="numeroPorPagina" name="numeroPorPagina" class="form-select" aria-label="Default select example">
+                    <option value="1">1</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                </select>
+            </div>
+        </div>    
+        
+                
+        <div id="divPaginas" class="center mt-3">         
         </div>
+              
+        <div id="divCards" class="container">  
+            <div id="loading" class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>  
+
     </div>
+
 
 
     <!--Libreria Sweet-->
@@ -48,3 +57,5 @@
     
 </body>
 </html>
+
+
